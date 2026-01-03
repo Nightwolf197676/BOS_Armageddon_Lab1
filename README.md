@@ -1,0 +1,1 @@
+This is the beginning of Armageddon.  I have worked through most of 1a but need to review to make sure nothing was missed. If you compare it to what was initially given, you will notice that i have called the vpc bos after our group brotherhood of steel.  We will go over this in the first meeting.
