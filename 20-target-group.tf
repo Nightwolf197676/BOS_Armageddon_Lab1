@@ -22,7 +22,7 @@ resource "aws_lb_target_group" "bos_tg01" {
   # TODO: students set health check path to something real (e.g., /health)
   health_check {
     enabled             = true
-    interval            = 30
+    interval            = 15
     path                = "/"
     port                = "traffic-port"
     protocol            = "HTTP"
@@ -42,6 +42,5 @@ resource "aws_lb_target_group_attachment" "bos_tg_attach01" {
   target_group_arn = aws_lb_target_group.bos_tg01.arn
   target_id        = aws_instance.bos_ec201_private_bonus.id
   port             = 80
-
   # TODO: students ensure EC2 security group allows inbound from ALB SG on this port (rule above)
 }

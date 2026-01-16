@@ -15,3 +15,11 @@ locals {
   # TODO: Students should lock this down after apply using the real secret ARN from outputs/state
   bos_secret_arn_guess = "arn:aws:secretsmanager:${data.aws_region.bos_region01.region}:${data.aws_caller_identity.bos_self01.account_id}:secret:${local.bos_prefix}/rds/mysql*"
 }
+
+# 1. Reference the existing hosted zone (do NOT create a new one)
+data "aws_route53_zone" "larrryharrisaws_zone" {
+  #name         = "larrryharrisaws.com."          # note the trailing dot
+  private_zone = false
+  zone_id = "Z0825167K1N04S2RCG6V"
+}
+

@@ -84,13 +84,13 @@ variable "sns_email_endpoint" {
 }
 
 variable "domain_name" {
-  description = "Base domain students registered (e.g., larryharrisaws.com)."
+  description = "Base domain students registered (e.g., larrryharrisaws.com)."
   type        = string
-  default     = "larryharrisaws.com"
+  default     = "larrryharrisaws.com"
 }
 
 variable "app_subdomain" {
-  description = "App hostname prefix (e.g., app.larryharrisaws.com)."
+  description = "App hostname prefix (e.g., app.larrryharrisaws.com)."
   type        = string
   default     = "app"
 }
@@ -139,7 +139,7 @@ variable "manage_route53_in_terraform" {
 variable "waf_log_destination" {
   description = "Where to send AWS WAFv2 logs: 'cloudwatch', 'firehose', 's3', or 'none'"
   type        = string
-  default     = "none"          # or "cloudwatch" if you want it on by default
+  default     = "cloudwatch"          # or "cloudwatch" if you want it on by default
   validation {
     condition     = contains(["cloudwatch", "firehose", "s3", "none"], var.waf_log_destination)
     error_message = "Valid values are: cloudwatch, firehose, s3, none."

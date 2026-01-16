@@ -1,13 +1,13 @@
-############################################
-# Bonus B - WAF Logging (CloudWatch Logs OR S3 OR Firehose)
-# One destination per Web ACL, choose via var.waf_log_destination.
-############################################
+# ############################################
+# # Bonus B - WAF Logging (CloudWatch Logs OR S3 OR Firehose)
+# # One destination per Web ACL, choose via var.waf_log_destination.
+# ############################################
 
-############################################
-# Option 1: CloudWatch Logs destination
-############################################
+# ############################################
+# # Option 1: CloudWatch Logs destination
+# ############################################
 
-# Explanation: WAF logs in CloudWatch are your “blaster-cam footage”—fast search, fast triage, fast truth.
+# # Explanation: WAF logs in CloudWatch are your “blaster-cam footage”—fast search, fast triage, fast truth.
 resource "aws_cloudwatch_log_group" "bos_waf_log_group01" {
   count = var.waf_log_destination == "cloudwatch" ? 1 : 0
 
@@ -35,31 +35,7 @@ resource "aws_wafv2_web_acl_logging_configuration" "bos_waf_logging01" {
   depends_on = [aws_wafv2_web_acl.bos_waf01]
 }
 
-############################################
-# Option 2: S3 destination (direct)
-############################################
 
-# Explanation: S3 WAF logs are the long-term archive—bos likes receipts that survive dashboards.
-resource "aws_s3_bucket" "bos_waf_logs_bucket01" {
-  count = var.waf_log_destination == "s3" ? 1 : 0
-
-  bucket = "aws-waf-logs-${var.project_name}-${data.aws_caller_identity.bos_self01.account_id}"
-
-  tags = {
-    Name = "${var.project_name}-waf-logs-bucket01"
-  }
-}
-
-# Explanation: Public access blocked—WAF logs are not a bedtime story for the entire internet.
-resource "aws_s3_bucket_public_access_block" "bos_waf_logs_pab01" {
-  count = var.waf_log_destination == "s3" ? 1 : 0
-
-  bucket                  = aws_s3_bucket.bos_waf_logs_bucket01[0].id
-  block_public_acls       = true
-  block_public_policy     = true
-  ignore_public_acls      = true
-  restrict_public_buckets = true
-}
 
 # Explanation: Connect shield generator to archive vault—WAF -> S3.
 resource "aws_wafv2_web_acl_logging_configuration" "bos_waf_logging_s3_01" {
@@ -103,7 +79,7 @@ resource "aws_iam_role" "bos_firehose_role01" {
   })
 }
 
-# Explanation: Minimal permissions—allow Firehose to put objects into the destination bucket.
+# # Explanation: Minimal permissions—allow Firehose to put objects into the destination bucket.
 resource "aws_iam_role_policy" "bos_firehose_policy01" {
   count = var.waf_log_destination == "firehose" ? 1 : 0
   name  = "${var.project_name}-firehose-policy01"
@@ -131,7 +107,7 @@ resource "aws_iam_role_policy" "bos_firehose_policy01" {
   })
 }
 
-# Explanation: The delivery stream is the belt itself—logs move from WAF -> Firehose -> S3.
+# # Explanation: The delivery stream is the belt itself—logs move from WAF -> Firehose -> S3.
 resource "aws_kinesis_firehose_delivery_stream" "bos_waf_firehose01" {
   count       = var.waf_log_destination == "firehose" ? 1 : 0
   name        = "aws-waf-logs-${var.project_name}-firehose01"
@@ -144,7 +120,7 @@ resource "aws_kinesis_firehose_delivery_stream" "bos_waf_firehose01" {
   }
 }
 
-# Explanation: Connect shield generator to conveyor belt—WAF -> Firehose stream.
+# # Explanation: Connect shield generator to conveyor belt—WAF -> Firehose stream.
 resource "aws_wafv2_web_acl_logging_configuration" "bos_waf_logging_firehose01" {
   count = var.enable_waf && var.waf_log_destination == "firehose" ? 1 : 0
 

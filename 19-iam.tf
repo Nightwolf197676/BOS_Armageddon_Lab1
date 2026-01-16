@@ -1,88 +1,74 @@
-############################################
-# Least-Privilege IAM (BONUS A)
-############################################
+# S3 Bucket for ALB Access Logs
+resource "aws_s3_bucket" "alb_logs" {
+  bucket        = "bos-alb-logs-891377135193"
+  force_destroy = true
+}
 
-# Explanation: bos doesn’t hand out the Falcon keys—this policy scopes reads to your lab paths only.
-resource "aws_iam_policy" "bos_leastpriv_read_params01" {
-  name        = "${local.bos_prefix}-lp-ssm-read01"
-  description = "Least-privilege read for SSM Parameter Store under /lab/db/*"
+resource "aws_s3_bucket_server_side_encryption_configuration" "alb_logs_sse" {
+  bucket = aws_s3_bucket.alb_logs.bucket
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"  # SSE-S3 – REQUIRED for ALB logs
+    }
+  }
+}
+
+# Keep your public access block
+resource "aws_s3_bucket_public_access_block" "alb_logs_block" {
+  bucket = aws_s3_bucket.alb_logs.id
+
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+# Ownership (required for ACL condition to work properly)
+resource "aws_s3_bucket_ownership_controls" "alb_logs_ownership" {
+  bucket = aws_s3_bucket.alb_logs.id
+  rule {
+    object_ownership = "BucketOwnerPreferred"
+  }
+}
+
+# Block all public access
+
+
+# Ownership controls (required for bucket-owner-full-control ACL)
+resource "aws_s3_bucket_ownership_controls" "alb_logs" {
+  bucket = aws_s3_bucket.alb_logs.id
+  rule {
+    object_ownership = "BucketOwnerPreferred"
+  }
+}
+
+# Bucket policy - Modern ALB principal (logdelivery.elasticloadbalancing.amazonaws.com)
+# Matches your prefix = "alb-logs" in bos_alb01
+resource "aws_s3_bucket_policy" "alb_logs_policy" {
+  bucket = aws_s3_bucket.alb_logs.id
 
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
       {
-        Sid    = "ReadLabDbParams"
-        Effect = "Allow"
-        Action = [
-          "ssm:GetParameter",
-          "ssm:GetParameters",
-          "ssm:GetParametersByPath"
-        ]
-        Resource = [
-          "arn:aws:ssm:${data.aws_region.bos_region01.region}:${data.aws_caller_identity.bos_self01.account_id}:parameter/lab/db/*"
-        ]
-      }
-    ]
-  })
-}
-
-# Explanation: bos only opens *this* vault—GetSecretValue for only your secret (not the whole planet).
-resource "aws_iam_policy" "bos_leastpriv_read_secret01" {
-  name        = "${local.bos_prefix}-lp-secrets-read01"
-  description = "Least-privilege read for the lab DB secret"
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
+        Sid       = "ALBLogDelivery"
+        Effect    = "Allow"
+        Principal = {
+          Service = "logdelivery.elasticloadbalancing.amazonaws.com"
+        }
+        Action    = "s3:PutObject"
+        Resource  = "arn:aws:s3:::bos-alb-logs-891377135193/alb-logs/AWSLogs/891377135193/*"
+      },
       {
-        Sid    = "ReadOnlyLabSecret"
-        Effect = "Allow"
-        Action = [
-          "secretsmanager:GetSecretValue",
-          "secretsmanager:DescribeSecret"
-        ]
-        Resource = local.bos_secret_arn_guess
+        Sid       = "ALBLogDeliveryAclCheck"
+        Effect    = "Allow"
+        Principal = {
+          Service = "delivery.logs.amazonaws.com"
+        }
+        Action    = "s3:GetBucketAcl"
+        Resource  = "arn:aws:s3:::bos-alb-logs-891377135193"
       }
     ]
   })
-}
-
-# Explanation: When the Falcon logs scream, this lets bos ship logs to CloudWatch without giving away the Death Star plans.
-resource "aws_iam_policy" "bos_leastpriv_cwlogs01" {
-  name        = "${local.bos_prefix}-lp-cwlogs01"
-  description = "Least-privilege CloudWatch Logs write for the app log group"
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Sid    = "WriteLogs"
-        Effect = "Allow"
-        Action = [
-          "logs:CreateLogStream",
-          "logs:PutLogEvents",
-          "logs:DescribeLogStreams"
-        ]
-        Resource = [
-          "${aws_cloudwatch_log_group.bos_log_group01.arn}:*"
-        ]
-      }
-    ]
-  })
-}
-
-# Explanation: Attach the scoped policies—bos loves power, but only the safe kind.
-resource "aws_iam_role_policy_attachment" "bos_attach_lp_params01" {
-  role       = aws_iam_role.bos_ec2_role01.name
-  policy_arn = aws_iam_policy.bos_leastpriv_read_params01.arn
-}
-
-resource "aws_iam_role_policy_attachment" "bos_attach_lp_secret01" {
-  role       = aws_iam_role.bos_ec2_role01.name
-  policy_arn = aws_iam_policy.bos_leastpriv_read_secret01.arn
-}
-
-resource "aws_iam_role_policy_attachment" "bos_attach_lp_cwlogs01" {
-  role       = aws_iam_role.bos_ec2_role01.name
-  policy_arn = aws_iam_policy.bos_leastpriv_cwlogs01.arn
 }

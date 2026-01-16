@@ -4,14 +4,14 @@
 ############################################
 
 # Explanation: TLS is the diplomatic passport — browsers trust you, and bos stops growling at plaintext.
-resource "aws_acm_certificate" "bos_acm_cert01" {
+resource "aws_acm_certificate" "larrryharrisaws_cert" {
   domain_name       = local.bos_fqdn
   validation_method = var.certificate_validation_method
 
   # TODO: students can add subject_alternative_names like var.domain_name if desired
 
   tags = {
-    Name = "${var.project_name}-acm-cert01"
+    Name = "larrryharrisaws76-cert"
   }
 }
 
@@ -20,9 +20,31 @@ resource "aws_acm_certificate" "bos_acm_cert01" {
 # resource "aws_route53_record" "bos_acm_validation" { ... }
 
 # Explanation: Once validated, ACM becomes the “green checkmark” — until then, ALB HTTPS won’t work.
-resource "aws_acm_certificate_validation" "bos_acm_validation01" {
-  certificate_arn = aws_acm_certificate.bos_acm_cert01.arn
+# 3. Create the validation CNAME records automatically
+resource "aws_route53_record" "larrryharrisaws_acm_validation" {
+  for_each = {
+    for dvo in aws_acm_certificate.larrryharrisaws_cert.domain_validation_options :
+    dvo.domain_name => {
+      name   = dvo.resource_record_name
+      record = dvo.resource_record_value
+      type   = dvo.resource_record_type
+    }
+  }
 
-  # TODO: if using DNS validation, students must pass validation_record_fqdns
-  # validation_record_fqdns = [aws_route53_record.bos_acm_validation.fqdn]
+  allow_overwrite = true
+  name            = each.value.name
+  records         = [each.value.record]
+  ttl             = 60
+  type            = each.value.type
+  zone_id         = "Z0825167K1N04S2RCG6V"
+}
+
+# 4. Waiter that blocks until ACM validates and issues the certificate
+resource "aws_acm_certificate_validation" "larrryharrisaws_cert_validation" {
+  certificate_arn         = aws_acm_certificate.larrryharrisaws_cert.arn
+  validation_record_fqdns = [for record in aws_route53_record.larrryharrisaws_acm_validation : record.fqdn]
+
+  timeouts {
+    create = "30m"  # optional: give more time if propagation is slow
+  }
 }

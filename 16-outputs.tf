@@ -11,9 +11,9 @@ output "bos_private_subnet_ids" {
   value = aws_subnet.bos_private_subnets[*].id
 }
 
-output "bos_ec2_instance_id" {
-  value = aws_instance.bos_ec201.id
-}
+# output "bos_ec2_instance_id" {
+#   value = aws_instance.bos_ec201.id
+# }
 
 output "bos_rds_endpoint" {
   value = aws_db_instance.bos_rds01.address
@@ -63,8 +63,8 @@ output "bos_target_group_arn" {
   value = aws_lb_target_group.bos_tg01.arn
 }
 
-output "bos_acm_cert_arn" {
-  value = aws_acm_certificate.bos_acm_cert01.arn
+output "larrryharrisaws_acm_cert_arn" {
+  value = aws_acm_certificate.larrryharrisaws_cert.arn
 }
 
 output "bos_waf_arn" {
@@ -79,3 +79,7 @@ output "bos_dashboard_name" {
 output "bos_ir_reports_bucket" {
   value = aws_s3_bucket.bos_ir_reports_bucket01.bucket
 }
+
+output "larrryharrisaws_route53_zone_id" { value = local.larrryharrisaws_zone_id }
+
+output "larrryharrisaws_app_url_https" { value = "https://${var.app_subdomain}.${var.domain_name}" }

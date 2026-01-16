@@ -47,7 +47,7 @@ resource "aws_wafv2_web_acl" "bos_waf01" {
   }
 }
 
-# Explanation: Attach the shield generator to the customs checkpoint — ALB is now protected.
+# # Explanation: Attach the shield generator to the customs checkpoint — ALB is now protected.
 resource "aws_wafv2_web_acl_association" "bos_waf_assoc01" {
   count = var.enable_waf ? 1 : 0
 

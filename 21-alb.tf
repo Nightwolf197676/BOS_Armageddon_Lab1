@@ -8,15 +8,24 @@ resource "aws_lb" "bos_alb01" {
   name               = "${var.project_name}-alb01"
   load_balancer_type = "application"
   internal           = false
+  security_groups    = [aws_security_group.bos_alb_sg01.id]
+  subnets            = aws_subnet.bos_public_subnets[*].id
 
-  security_groups = [aws_security_group.bos_alb_sg01.id]
-  subnets         = aws_subnet.bos_public_subnets[*].id
-
-  # TODO: students can enable access logs to S3 as a stretch goal
+  access_logs {
+    bucket  = aws_s3_bucket.alb_logs.bucket           # must match your bucket resource name
+    prefix  = "alb-logs"                              # optional, but recommended
+    enabled = true
+  }
 
   tags = {
     Name = "${var.project_name}-alb01"
   }
+
+  depends_on = [
+    aws_s3_bucket_policy.alb_logs_policy,
+    aws_s3_bucket_ownership_controls.alb_logs,
+    aws_s3_bucket_server_side_encryption_configuration.alb_logs_sse
+  ]
 }
 
 ############################################
@@ -45,12 +54,12 @@ resource "aws_lb_listener" "bos_https_listener01" {
   port              = 443
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-TLS13-1-2-2021-06"
-  certificate_arn   = aws_acm_certificate_validation.bos_acm_validation01.certificate_arn
+  certificate_arn   = aws_acm_certificate.larrryharrisaws_cert.arn
 
   default_action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.bos_tg01.arn
   }
 
-  depends_on = [aws_acm_certificate_validation.bos_acm_validation01]
+  depends_on = [aws_acm_certificate_validation.larrryharrisaws_acm_validation01_dns_bonus]
 }
