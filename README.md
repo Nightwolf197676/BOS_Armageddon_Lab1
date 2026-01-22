@@ -103,7 +103,7 @@ Availability Zone
 
 #### Architectural Design 
 
-Theo's outline
+[Theo's outline](https://github.com/DennistonShaw/armageddon/blob/main/SEIR_Foundations/LAB1/1a_explanation.md)
 
 - showing the logical flow 
   - A user sends an HTTP request to an EC2 instance
@@ -381,13 +381,9 @@ resource "aws_iam_role_policy" "bos_ec2_secrets_access" {
 - go over all deliverables so that everyone can take screenshots
 
 ----------
-
-# Lab 1a complete!
-
-----------
 ----------
 
-# Lab 1b
+# [Lab 1b](https://github.com/DennistonShaw/armageddon/blob/main/SEIR_Foundations/LAB1/1b_lab.md)
 01-08-25 
 quick meeting with Larry with some updates for Lab 1b
 
@@ -443,10 +439,8 @@ caught up more members
 
 ------
 
-# Final Check for lab 1a:
+# [Final Check for lab 1a:](https://github.com/DennistonShaw/armageddon/blob/main/SEIR_Foundations/LAB1/1a_final_check.txt)
 Saturday 01-10-25
-re:
-- https://github.com/DennistonShaw/armageddon/blob/main/SEIR_Foundations/LAB1/1a_final_check.txt
 
 1) From your local Terminal we are changing permissions for the following files to run (metadata checks; role attach + secret exists)
 
@@ -457,6 +451,8 @@ re:
 >>>     chmod +x run_all_gates.sh
 
 sc<sup>24-1</sup>![24](./screen-captures/24-1.png)
+
+run this code after changing instance id and secret id
 
 >>>     REGION=us-east-1 INSTANCE_ID=i-0123456789abcdef0 SECRET_ID=my-db-secret ./gate_secrets_and_role.sh
 
@@ -471,7 +467,7 @@ sc<sup>24-2</sup>![24](./screen-captures/24-2.png)
 
 ---------
 
-### 1) Basic: verify RDS isn’t public + SG-to-SG rule exists
+### 1. Basic: verify RDS isn’t public + SG-to-SG rule exists
 
 >>>    REGION=us-east-1 INSTANCE_ID=i-0123456789abcdef0 DB_ID=mydb01 ./gate_network_db.sh
 
@@ -484,10 +480,10 @@ sc<sup>24-4</sup>![24](./screen-captures/24-4.png)
 
 ----
 
-### 2) Basic: verify RDS isn’t public + SG-to-SG rule exists
+### 2. Basic: verify RDS isn’t public + SG-to-SG rule exists
 Strict: also verify DB subnets are private (no IGW route)
 
-- *note: when pushed to github the backslashes "\" do not appear. Remember to add a space + \ at the end of each line where a new line follows
+- *note: when pushed to github the backslashes \ do not appear. Remember to add a space \ at the end of each line where a new line follows
 
 >>>REGION=us-east-1 \
 INSTANCE_ID=i-0123456789abcdef0 \
@@ -600,7 +596,6 @@ my personal ARN:
 - confirm in your email that you have subscribed
   
 sc<sup>28-1</sup>![28-1](./screen-captures/28-1.png)
-
 ----
 
 If you are having an issue subscribing to the SNS because it automatically unsubscribes then:
@@ -659,6 +654,8 @@ sc<sup>31</sup>![31](./screen-captures/31.png)
 - Credential failure? Network failure? Database availability failure? This classification is graded.
 
 RUNBOOK SECTION 3 — Validate Configuration Sources 3.1 Retrieve Parameter Store Values
+
+change lab to bos in the code
 
 >>>  aws ssm get-parameters \
     --names /lab/db/endpoint /lab/db/port /lab/db/name \
@@ -743,8 +740,6 @@ Expected: No new errors
 sc<sup>37</sup>![37](./screen-captures/37.png)
 
 -----
-
-
 ----
 
 # meeting #5 - my-armageddon-project-1
@@ -797,17 +792,679 @@ We received this email because Amazon CloudWatch Alarm "bos-db-connection-failur
 |||
 |||
 |STATE CHANGE: |INSUFFICIENT_DATA -> OK|
-|Reason for State Change: |*Corrected the password.**|
+|Reason for State Change: | *Corrected the password.git*|
 |Date/Time of Incident |Sunday 11, January, 2026 / 22:03:38 (UTC)|
 
-
-A comprehensive investigation determined that the AWS Secrets Manager password had been modified without authorization. The password has since been restored to its correct value. To prevent a recurrence we will review and refine IAM policies to ensure adherence to the principle of least privilege.
+A comprehensive investigation determined the AWS Secrets Manager password had been modified without authorization. The password has since been restored to its correct value. To prevent a recurrence we will review and refine IAM policies to ensure adherence to the principle of least privilege.
 
 The following actions are recommended:
-- Implement multi-factor authentication (MFA) to provide an additional layer of security, and enable AWS CloudTrail to capture and retain records of all API calls and user activity.
-- Reduce mean time to resolution (MTTR) by deploying Amazon CloudWatch Synthetics canaries to continuously monitor critical endpoints and APIs.
+1. Implement multi-factor authentication (MFA) to provide an additional layer of security, and enable AWS CloudTrail to capture and retain records of all API calls and user activity.
+2. Reduce mean time to resolution (MTTR) by deploying Amazon CloudWatch Synthetic's canaries to continuously monitor critical endpoints and APIs.
 
 ----
 
+# meeting #6 - my-armageddon-project-1
+### Group Leader: Omar Fleming
+### Team Leader: Larry Harris
+### Date: 01-13-25 (Sunday)
+### Time: 8:00pm - 8:30pm est. in class
+### Time: 8:30pm -  pm est. with group
+
+---------
+
+### Members present: 
+- Larry Harris
+- Dennis Shaw
+- Bryce Williams
+- David McKenzie
+- LT (Logan T)
+- Ted Clayton
+- Torray
+- Jay Mallard
+
+---------
+
+### In today's meeting:
+- general discussion about discovering breakage and how things are resolved in the real world
+- For our next meeting let's all set up our own Domains in next meeting
+
+-----------
+# [Lab 1c](https://github.com/DennistonShaw/armageddon/tree/main/SEIR_Foundations/LAB1/1c_terrraform)
+
+- in 1c_terraform folder go through and add .tf folders/script
+----
+
+# [Student verification (CLI) for Bonus-A](https://github.com/DennistonShaw/armageddon/blob/main/SEIR_Foundations/LAB1/1c_bonus-A.txt)
+
+### 1. Prove EC2 is private (no public IP)
+
+run this code, replace instance ID
+- my personal ID: ids i-06597b6baa04cddde
+
+ >>> aws ec2 describe-instances \
+  --instance-ids <INSTANCE_ID> \
+  --query "Reservations[].Instances[].PublicIpAddress"
+
+Expected: 
+- null
+
+sc<sup>38</sup>![38](./screen-captures/38.png)
+
+----
+
+### 2. Prove VPC endpoints exist
+- ad vpc id / my personal ID: vpc-0cd7e9e21449091af
+
+sc<sup>39</sup>![39](./screen-captures/39.png)
+
+>>>aws ec2 describe-vpc-endpoints \
+  --filters "Name=vpc-id,Values=<VPC_ID>" \
+  --query "VpcEndpoints[].ServiceName"
+
+Expected: list includes:
+- ssm 
+- ec2messages 
+- ssmmessages 
+- logs 
+- secretsmanager
+- s3
+
+sc<sup>40</sup>![40](./screen-captures/40.png)
+
+----
+
+### 3. Prove Session Manager path works (no SSH)
 
 
+sc<sup>41</sup>![41](./screen-captures/41.png)
+
+sc<sup>42</sup>![42](./screen-captures/42.png)
+
+>>>aws ssm describe-instance-information \
+  --query "InstanceInformationList[].InstanceId"
+
+Expected: 
+- your private EC2 
+- instance ID appears
+
+### 4. Prove the instance can read both config stores
+
+- Run from SSM session:
+- change secret-id name (AWS Secrets manager > Secrets): bos/rds/mysql
+
+>>>aws ssm get-parameter --name /lab/db/endpoint
+
+sc<sup>43</sup>![43](./screen-captures/43.png)
+  
+>>>aws secretsmanager get-secret-value --secret-id <your-secret-name>
+
+sc<sup>44</sup>![44](./screen-captures/44.png)
+
+### 5. Prove CloudWatch logs delivery path is available via endpoint
+
+ - change < prefix > to bos in the following code
+  
+>>>aws logs describe-log-streams \
+    --log-group-name /aws/ec2/<prefix>-rds-app
+
+sc<sup>45</sup>![45](./screen-captures/45.png)
+
+----
+----
+
+
+# NEW FIXES 01-15-25 (Thursday)  when copying or cloning someone's repository lab
+
+Explanation: we had a few problems this past Tuesday with the build and obtaining certifications. At this point we need everyone to:
+
+- clone it to your local
+- create a new folder and copy and paste the files from the clone to
+- copy your README file, any snapshots/screen captures, .gitignore and iam-role.tf, and the inline_policiy file from your old folder into your new folder
+- go to your variables.tf and change your: 
+  - email address
+  - AWS account number
+
+sc<sup>46</sup>![46](./screen-captures/46.png)
+
+sc<sup>47</sup>![47](./screen-captures/47.png)
+
+sc<sup>48</sup>![48](./screen-captures/48.png)
+
+sc<sup>49</sup>![49](./screen-captures/49.png)
+
+Let's get everyone up to date, hopefully before Saturday's meeting. We would like to focus on getting everyone a Domain name (be prepared to spend $3-$15). You will need to obtain a domain to continue with the labs past this point.
+
+https://github.com/DennistonShaw/my-armageddon-projects.git
+
+----
+----
+
+# [Lab 1c - Bonus b](https://github.com/DennistonShaw/armageddon/blob/main/SEIR_Foundations/LAB1/1c_bonus-B.md)
+
+EC2 runs app on the target port They must ensure their user-data/app listens on port 80 (or update TG/SG accordingly).
+
+### Verification commands (CLI) for Bonus-B
+
+- TG_ARN: arn:aws:elasticloadbalancing:us-east-1:497589205696:targetgroup/bos-tg01/f5193bd65c03bd93
+- ALB_ARN: arn:aws:elasticloadbalancing:us-east-1:497589205696:loadbalancer/app/bos-alb01/5b2c00ca9e5d47f2
+
+### 1. ALB exists and is active
+
+>>>aws elbv2 describe-load-balancers
+--names bos-alb01
+--query "LoadBalancers[0].State.Code"
+
+sc<sup>50-1</sup>![50-1](./screen-captures/50-1.png)
+
+### 2. HTTPS listener exists on 443
+
+>>>aws elbv2 describe-listeners
+--load-balancer-arn <ALB_ARN>
+--query "Listeners[].Port"
+
+sc<sup>50-2</sup>![50-2](./screen-captures/50-2.png)
+
+### 3. Target is healthy
+
+>>>aws elbv2 describe-target-health
+--target-group-arn <TG_ARN>
+
+sc<sup>53-3</sup>![50-3](./screen-captures/50-3.png)
+
+### 4. WAF attached
+
+>>>aws wafv2 get-web-acl-for-resource
+--resource-arn <ALB_ARN>
+
+sc<sup>50-4</sup>![50-4](./screen-captures/50-4.png)
+
+### 5. Alarm created (ALB 5xx)
+
+>>>aws cloudwatch describe-alarms
+--alarm-name-prefix bos-alb-5xx
+
+sc<sup>50-5</sup>![50-5](./screen-captures/50-5.png)
+
+### 6. Dashboard exists
+
+>>>aws cloudwatch list-dashboards
+--dashboard-name-prefix bos
+
+sc<sup>50-6</sup>![50-6](./screen-captures/50-6.png)
+
+----
+----
+
+# meeting #7 - my-armageddon-project-1
+### Group Leader: Omar Fleming
+### Team Leader: Larry Harris
+### Date: 01-17-25 (Saturday)
+### Time: 2:00pm - 2:30pm est. in class
+### Time: 2:30pm -  pm est. with group
+
+---------
+
+### Members present: 
+- Larry Harris
+- Dennis Shaw
+- Bryce Williams
+- Kelly D Moore
+- Ted Clayton
+- Logan (LT) 
+- David Mckenzie
+- Torray
+- Zeek-Miller314
+- Jasper Shivers (Jdollas)
+---------
+
+## In Class
+
+**** deadline for Class 7 Armageddon submissions: 2/3/26 ****
+
+Armageddon repo: https://github.com/BalericaAI/armageddon/tree/main/SEIR_Foundations
+
+Class 7 must do:
+- Lab 1, all the way to bonus F 
+- Lab 2, all the way to be BAM B 
+- Lab 3a and 3b
+* the further you go in the labs, the more work ready you become
+----
+
+### Question and Answer with Theo:
+
+Bryce Williams issue: 
+- if the script gives you the answer that you need but not the validation its ok
+
+Larry Harris: Understanding Lab 1c bonus f:
+- follow the instructions as close as we can
+- access logs are in s3
+- modify terraform but make sure bucket stays persistant
+- s3 bucket has to be global and unique name. so claim your bucket and makes sure it doesn't delete. use consol after the bucket is created in Terraform
+
+- route 53 should be perminent don't keep destroying
+
+----
+----
+# Beyond this point you need a Domain and it's certificates to execute the deliverables 
+----
+
+# meeting #8 - my-armageddon-project-1
+### Group Leader: Omar Fleming
+### Team Leader: Larry Harris
+### Date: 01-18-25 (Sunday)
+### Time: 2:00pm - 3:00pm est. in class
+### Time: 3:00pm -  6:30pm est. with group
+
+---------
+
+### Members present: 
+- Larry Harris
+- Dennis Shaw
+- Bryce Williams
+- Kelly D Moore
+- Ted Clayton
+- Logan (LT)
+- David McKenzie
+- Jasper Shivers (Jdollas)
+
+--------
+
+## In Class
+- working mostly individually
+- touble shooting
+- completing bonus f
+
+-------
+
+# [Lab 1c bonus c](https://github.com/DennistonShaw/armageddon/blob/main/SEIR_Foundations/LAB1/1c_bonus-C.md)
+  
+### Student verification (CLI)
+
+**My Personal info for this section:**
+
+- Hosted zone name: southrakkasmedia.com
+- Hosted zone ID: Z00021892WE8NHJ89CAOJ
+- Certificate arn: arn:aws:acm:us-east-1:497589205696:certificate/063ee92d-09da-4aef-b8fd-fee77071d053
+- Load balancer ARN: arn:aws:elasticloadbalancing:us-east-1:497589205696:loadbalancer/app/bos-alb01/5b2c00ca9e5d47f2
+
+#### 1. Confirm hosted zone exists (if managed)
+
+  >>>aws route53 list-hosted-zones-by-name \
+    --dns-name chewbacca-growl.com \
+    --query "HostedZones[].Id"
+
+sc<sup>51-1</sup>![51-1](./screen-captures/51-1.png)
+
+#### 2. Confirm app record exists
+
+  >>>aws route53 list-resource-record-sets \
+  --hosted-zone-id <ZONE_ID> \
+  --query "ResourceRecordSets[?Name=='app.chewbacca-growl.com.']"
+
+sc<sup>51-2</sup>![51-2](./screen-captures/51-2.png)
+
+#### 3. Confirm certificate issued
+
+  >>>aws acm describe-certificate \
+  --certificate-arn <CERT_ARN> \
+  --query "Certificate.Status"
+
+Expected: ISSUED
+
+sc<sup>51-3</sup>![51-3](./screen-captures/51-3.png)
+
+#### 4. Confirm HTTPS works
+
+  >>>curl -I https://app.chewbacca-growl.com
+
+Expected: HTTP/1.1 200 (or 301 then 200 depending on your app)
+
+sc<sup>51-4</sup>![51-4](./screen-captures/51-4.png)
+
+----
+
+# [Lab 1c bonus d](https://github.com/DennistonShaw/armageddon/blob/main/SEIR_Foundations/LAB1/1c_bonus-D.md)
+
+[Student verification (CLI) — DNS + Logs](https://github.com/DennistonShaw/armageddon/blob/main/SEIR_Foundations/LAB1/1c_bonus-D.md?plain=1)
+
+1. Verify apex record exists
+   
+  >>>aws route53 list-resource-record-sets \
+    --hosted-zone-id <ZONE_ID> \
+    --query "ResourceRecordSets[?Name=='chewbacca-growl.com.']"
+
+sc<sup>52-1</sup>![52-1](./screen-captures/52-1.png)
+
+2. Verify ALB logging is enabled
+   
+  >>>aws elbv2 describe-load-balancers \
+    --names chewbacca-alb01 \
+    --query "LoadBalancers[0].LoadBalancerArn"
+
+sc<sup>52-2</sup>![52-2](./screen-captures/52-2.png)
+
+Then:
+  >>>aws elbv2 describe-load-balancer-attributes \
+  --load-balancer-arn <ALB_ARN>
+
+  Expected attributes include:
+  access_logs.s3.enabled = true
+  access_logs.s3.bucket = your bucket
+  access_logs.s3.prefix = your prefix
+
+sc<sup>52-3</sup>![52-3](./screen-captures/52-3.png)
+
+3. Generate some traffic  
+
+- there is a problem with the first curl code option (why its striked out) just run the second one
+
+>>>~~curl -I https://chewbacca-growl.com~~
+
+>>>curl -I https://app.chewbacca-growl.com
+
+sc<sup>52-4</sup>![52-4](./screen-captures/52-4.png)
+
+4. Verify logs arrived in S3 (may take a few minutes)
+
+s3 bucket name: bos-alb-logs-497589205696
+account ID: 497589205696
+this is the pathway into your s3 bucket
+   
+  >>>aws s3 ls s3://<BUCKET_NAME>/<PREFIX>/AWSLogs/<ACCOUNT_ID>/elasticloadbalancing/ --recursive | head
+
+sc<sup>52-5</sup>![52-5](./screen-captures/52-5.png)
+
+Why this matters to YOU (career-critical point)
+This is incident response fuel:
+  Access logs tell you:
+    client IPs
+    paths
+    response codes
+    target behavior
+    latency
+
+Combined with WAF logs/metrics and ALB 5xx alarms, you can do real triage; is it attackers, misroutes, or downstream failure?
+
+----
+
+# [Lab 1c bonus e](https://github.com/DennistonShaw/armageddon/blob/main/SEIR_Foundations/LAB1/1c_bonus-E.md)
+
+Below is Lab 1C-Bonus-E (continued): WAF logging in Terraform (with toggles), plus verification commands.
+
+- change chewbacca references to bos
+
+### 1. [Add variables](https://github.com/DennistonShaw/armageddon/blob/main/SEIR_Foundations/LAB1/1c_terrraform/variables.tf) (append to variables.tf)
+>>>variable "waf_log_destination" {
+  description = "Choose ONE destination per WebACL: cloudwatch | s3 | firehose"
+  type        = string
+  default     = "cloudwatch"
+}
+
+>>>variable "waf_log_retention_days" {
+  description = "Retention for WAF CloudWatch log group."
+  type        = number
+  default     = 14
+}
+
+>>>variable "enable_waf_sampled_requests_only" {
+  description = "If true, students can optionally filter/redact fields later. (Placeholder toggle.)"
+  type        = bool
+  default     = false
+}
+
+### 2. Add file: [bonus_b_waf_logging.tf](https://github.com/DennistonShaw/armageddon/blob/main/SEIR_Foundations/LAB1/1c_terrraform/bonus_b_waf_logging.tf) (Look in Folder)
+
+This provides three skeleton options (CloudWatch / S3 / Firehose). Students choose one via var.waf_log_destination.
+
+### 3. [Outputs](https://github.com/DennistonShaw/armageddon/blob/main/SEIR_Foundations/LAB1/1c_terrraform/outputs.tf) (append to outputs.tf)
+
+Explanation: Coordinates for the WAF log destination—Chewbacca wants to know where the footprints landed.
+>>>output "chewbacca_waf_log_destination" {
+  value = var.waf_log_destination
+}
+
+>>>output "chewbacca_waf_cw_log_group_name" {
+  value = var.waf_log_destination == "cloudwatch" ? aws_cloudwatch_log_group.chewbacca_waf_log_group01[0].name : null
+}
+
+>>>output "chewbacca_waf_logs_s3_bucket" {
+  value = var.waf_log_destination == "s3" ? aws_s3_bucket.chewbacca_waf_logs_bucket01[0].bucket : null
+}
+
+>>>output "chewbacca_waf_firehose_name" {
+  value = var.waf_log_destination == "firehose" ? aws_kinesis_firehose_delivery_stream.chewbacca_waf_firehose01[0].name : null
+}
+
+### 4. Student verification (CLI)
+
+#### A. Confirm WAF logging is enabled (authoritative)
+  >>>aws wafv2 get-logging-configuration \
+    --resource-arn <WEB_ACL_ARN>
+
+Expected: LogDestinationConfigs contains exactly one destination.
+
+sc<sup>53-1</sup>![53-1](./screen-captures/53-1.png)
+
+#### B. Generate traffic (hits + blocks)
+  >>>~~curl -I https://chewbacca-growl.com/~~
+
+  >>>curl -I https://app.chewbacca-growl.com/
+
+sc<sup>53-2</sup>![53-2](./screen-captures/53-2.png)
+
+#### C1. If [CloudWatch Logs destination](https://us-east-1.console.aws.amazon.com/cloudwatch/home?region=us-east-1#logsV2:log-groups)
+
+- reference the var.project_name ie. replace project with bos
+  
+  >>>aws logs describe-log-streams \
+  --log-group-name aws-waf-logs-<project>-webacl01 \
+  --order-by LastEventTime --descending
+
+sc<sup>53-3</sup>![53-3](./screen-captures/53-3.png)
+
+Then pull recent events:
+  >>>aws logs filter-log-events \
+  --log-group-name aws-waf-logs-<project>-webacl01 \
+  --max-items 20
+
+sc<sup>53-4</sup>![53-4](./screen-captures/53-4.png)
+
+----
+
+# [Lab 1c bonus f](https://github.com/DennistonShaw/armageddon/blob/main/SEIR_Foundations/LAB1/1c_bonus-F.md)
+
+helpful content: [Analyzing AWS WAF logs: Leveraging CloudWatch Log Insights](https://aws.amazon.com/ar/video/watch/b117e232382/)
+
+Go to the consol > cloudwatch > Log Insights
+
+In Query definition > query scope > select up to 50 log groups (dropdown) > select the first and last option
+
+sc<sup>54-1</sup>![54-1](./screen-captures/54-1.png)
+
+#### Requirements: 
+- Set the time range to Last 15 minutes (or match incident window).
+
+sc<sup>54-2</sup>![54-2](./screen-captures/54-2.png)
+
+## A) WAF Queries (CloudWatch Logs Insights)
+
+A1) “What’s happening right now?” (Top actions: ALLOW/BLOCK)
+- copy and past query
+
+>>>fields @timestamp, action
+| stats count() as hits by action
+| sort hits desc
+
+sc<sup>54-3</sup>![54-3](./screen-captures/54-3.png)
+
+- Run query
+
+sc<sup>54-4</sup>![54-4](./screen-captures/54-4.png)
+
+A2) Top client IPs (who is hitting us the most?)
+>>>fields @timestamp, httpRequest.clientIp as clientIp
+| stats count() as hits by clientIp
+| sort hits desc
+| limit 25
+
+sc<sup>54-5</sup>![54-5](./screen-captures/54-5.png)
+
+A3) Top requested URIs (what are they trying to reach?)
+>>>fields @timestamp, httpRequest.uri as uri
+| stats count() as hits by uri
+| sort hits desc
+| limit 25
+
+sc<sup>54-6</sup>![54-6](./screen-captures/54-6.png)
+
+A4) Blocked requests only (who/what is being blocked?)
+>>>fields @timestamp, action, httpRequest.clientIp as clientIp, httpRequest.uri as uri
+| filter action = "BLOCK"
+| stats count() as blocks by clientIp, uri
+| sort blocks desc
+| limit 25
+
+sc<sup>54-7</sup>![54-7](./screen-captures/54-7.png)
+
+to set up clould Athena sql query:
+go to Amazon Athena > Query Settings > manage > Browse S3 > Choose S3 data set > click choose > enter AWS account ID > click save
+
+sc<sup>54-8</sup>![54-8](./screen-captures/54-8.png)
+
+A5) Which WAF rule is doing the blocking?
+>>>fields @timestamp, action, terminatingRuleId, terminatingRuleType
+| filter action = "BLOCK"
+| stats count() as blocks by terminatingRuleId, terminatingRuleType
+| sort blocks desc
+| limit 25
+
+sc<sup>54-9</sup>![54-9](./screen-captures/54-9.png)
+
+A6) Rate of blocks over time (did it spike?)
+>>>fields @timestamp, httpRequest.clientIp as clientIp, httpRequest.uri as uri
+| filter uri like /wp-login|xmlrpc|\.env|admin|phpmyadmin|\.git|\/login/
+| stats count() as hits by clientIp, uri
+| sort hits desc
+| limit 50
+
+sc<sup>54-10</sup>![54-10](./screen-captures/54-10.png)
+
+#edit
+fields @timestamp, httpRequest.clientIp as clientIp, httpRequest.uri 
+
+A7) Suspicious scanners (common patterns: admin paths, wp-login, etc.)
+>>>fields @timestamp, httpRequest.clientIp as clientIp, httpRequest.uri as uri
+| filter uri like /wp-login|xmlrpc|\.env|admin|phpmyadmin|\.git|\/login/
+| stats count() as hits by clientIp, uri
+| sort hits desc
+| limit 50
+
+sc<sup>54-11</sup>![54-11](./screen-captures/54-11.png)
+
+A8) Country/geo (if present in your WAF logs)
+Some WAF log formats include httpRequest.country. If yours does:
+
+>>>fields @timestamp, httpRequest.country as country
+| stats count() as hits by country
+| sort hits desc
+| limit 25
+
+sc<sup>54-12</sup>![54-12](./screen-captures/54-12.png)
+
+## B) App Queries (EC2 app log group)
+
+These assume your app logs include meaningful strings like ERROR, DBConnectionErrors, timeout, etc
+(You should enforce this.)
+
+B1) Count errors over time (this should line up with the alarm window)
+
+the following code has been adjusted to work
+>>>fields @timestamp, @message
+| filter @message like /DBConnectionError|Exception|Traceback|DB|timeout|refused/
+| stats count() as errors by bin(1m)
+| sort minute asc
+
+sc<sup>54-13</sup>![54-13](./screen-captures/54-13.png)
+
+
+B2) Show the most recent DB failures (triage view)
+>>>fields @timestamp, @message
+| filter @message like /DB|mysql|timeout|refused|Access denied|could not connect/
+| sort @timestamp desc
+| limit 50
+
+sc<sup>54-14</sup>![54-14](./screen-captures/54-14.png)
+
+B3) “Is it creds or network?” 
+- classifier hints Credentials drift often shows: 
+  - Access denied, authentication failures
+- Network/SecurityGroup often shows: 
+  - timeout, refused, “no route”, hang
+
+  >>>fields @timestamp, @message
+| filter tolower(@message) like /access denied|authentication failed|timeout|refused|no route|could not connect/
+| stats count() as hits by
+  if(
+    tolower(@message) like /DBConnectionError|authentication failed/, "Creds/Auth",
+    if(
+      tolower(@message) like /timeout|no route/, "Network/Route",
+      if(
+        tolower(@message) like /refused/, "Port/SG/ServiceRefused",
+        "Other"
+      )
+    )
+  ) as category
+| sort hits desc
+
+sc<sup>54-15</sup>![54-15](./screen-captures/54-15.png)
+
+-----
+!!!!!!!!! check this
+Steps to view raw log events in the CloudWatch console:
+
+1. Steps to view raw log events in the CloudWatch console:
+2. In the navigation pane, choose Logs, then choose Log groups.
+3. From the list of log groups, choose the name of the log group you want to view.
+4. From the list of log streams, choose the name of the log stream that contains the event you are interested in.
+5. Above the list of log events, you will see display options. Choose Text to display all log events in their raw, plain text format. The default view often formats the events (e.g., as rows or collapsed JSON), so switching to "Text" will show the original log data as it was ingested. 
+-----
+
+B4) Extract structured fields (Requires log JSON)
+If you log JSON like: {"level":"ERROR","event":"db_connect_fail","reason":"timeout"}:
+
+  >>>fields @timestamp, level, event, reason
+| filter level="DBConnectionError"
+| stats count() as n by event, reason
+| sort n desc
+
+(Thou Shalt need to emit JSON logs for this one.)
+
+sc<sup>54-16</sup>![54-16](./screen-captures/54-16.png)
+
+sc<sup>54-17</sup>![54-17](./screen-captures/54-17.png)
+
+C) Correlation “Enterprise-style” mini-workflow (Runbook Section)
+Add this to the incident runbook:
+
+Step 1 — Confirm signal timing
+  CloudWatch alarm time window: last 5–15 minutes
+  Run App B1 to see error spike time bins
+
+Step 2 — Decide: Attack vs Backend Failure
+  Run WAF A1 + A6:
+    If BLOCK spikes align with incident time → likely external pressure/scanning
+    If WAF is quiet but app errors spike → likely backend (RDS/SG/creds)
+
+Step 3 — If backend failure suspected
+  Run App B2 and classify:
+    Access denied → secrets drift / wrong password
+    timeout → SG/routing/RDS down
+  Then retrieve known-good values:
+    Parameter Store /lab/db/*
+    Secrets Manager /<prefix>/rds/mysql
+
+Step 4 — Verify recovery
+  App errors return to baseline (B1)
+  WAF blocks stabilize (A6)
+  Alarm returns to OK
+  curl https://app.chewbacca-growl.com/list works
