@@ -1090,7 +1090,7 @@ Larry Harris: Understanding Lab 1c bonus f:
 #### 1. Confirm hosted zone exists (if managed)
 
   >>>aws route53 list-hosted-zones-by-name \
-    --dns-name chewbacca-growl.com \
+    --dns-name southrakkasmedia.com \
     --query "HostedZones[].Id"
 
 sc<sup>51-1</sup>![51-1](./screen-captures/51-1.png)
@@ -1099,7 +1099,7 @@ sc<sup>51-1</sup>![51-1](./screen-captures/51-1.png)
 
   >>>aws route53 list-resource-record-sets \
   --hosted-zone-id <ZONE_ID> \
-  --query "ResourceRecordSets[?Name=='app.chewbacca-growl.com.']"
+  --query "ResourceRecordSets[?Name=='app.southrakkasmedia.com.']"
 
 sc<sup>51-2</sup>![51-2](./screen-captures/51-2.png)
 
@@ -1115,7 +1115,7 @@ sc<sup>51-3</sup>![51-3](./screen-captures/51-3.png)
 
 #### 4. Confirm HTTPS works
 
-  >>>curl -I https://app.chewbacca-growl.com
+  >>>curl -I https://app.southrakkasmedia.com
 
 Expected: HTTP/1.1 200 (or 301 then 200 depending on your app)
 
@@ -1131,7 +1131,7 @@ sc<sup>51-4</sup>![51-4](./screen-captures/51-4.png)
    
   >>>aws route53 list-resource-record-sets \
     --hosted-zone-id <ZONE_ID> \
-    --query "ResourceRecordSets[?Name=='chewbacca-growl.com.']"
+    --query "ResourceRecordSets[?Name=='southrakkasmedia.com.']"
 
 sc<sup>52-1</sup>![52-1](./screen-captures/52-1.png)
 
@@ -1158,9 +1158,9 @@ sc<sup>52-3</sup>![52-3](./screen-captures/52-3.png)
 
 - there is a problem with the first curl code option (why its striked out) just run the second one
 
->>>~~curl -I https://chewbacca-growl.com~~
+>>>~~curl -I https://southrakkasmedia.com~~
 
->>>curl -I https://app.chewbacca-growl.com
+>>>curl -I https://app.southrakkasmedia.com
 
 sc<sup>52-4</sup>![52-4](./screen-captures/52-4.png)
 
@@ -1246,9 +1246,9 @@ Expected: LogDestinationConfigs contains exactly one destination.
 sc<sup>53-1</sup>![53-1](./screen-captures/53-1.png)
 
 #### B. Generate traffic (hits + blocks)
-  >>>~~curl -I https://chewbacca-growl.com/~~
+  >>>~~curl -I https://southrakkasmedia.com/~~
 
-  >>>curl -I https://app.chewbacca-growl.com/
+  >>>curl -I https://app.southrakkasmedia.com/
 
 sc<sup>53-2</sup>![53-2](./screen-captures/53-2.png)
 
@@ -1288,8 +1288,8 @@ sc<sup>54-2</sup>![54-2](./screen-captures/54-2.png)
 
 ## A) WAF Queries (CloudWatch Logs Insights)
 
-A1) “What’s happening right now?” (Top actions: ALLOW/BLOCK)
-- copy and past query
+**A1) “What’s happening right now?” (Top actions: ALLOW/BLOCK)**
+- copy and paste query
 
 >>>fields @timestamp, action
 | stats count() as hits by action
@@ -1301,7 +1301,8 @@ sc<sup>54-3</sup>![54-3](./screen-captures/54-3.png)
 
 sc<sup>54-4</sup>![54-4](./screen-captures/54-4.png)
 
-A2) Top client IPs (who is hitting us the most?)
+**A2) Top client IPs (who is hitting us the most?)**
+
 >>>fields @timestamp, httpRequest.clientIp as clientIp
 | stats count() as hits by clientIp
 | sort hits desc
@@ -1309,7 +1310,8 @@ A2) Top client IPs (who is hitting us the most?)
 
 sc<sup>54-5</sup>![54-5](./screen-captures/54-5.png)
 
-A3) Top requested URIs (what are they trying to reach?)
+**A3) Top requested URIs (what are they trying to reach?)**
+
 >>>fields @timestamp, httpRequest.uri as uri
 | stats count() as hits by uri
 | sort hits desc
@@ -1317,7 +1319,8 @@ A3) Top requested URIs (what are they trying to reach?)
 
 sc<sup>54-6</sup>![54-6](./screen-captures/54-6.png)
 
-A4) Blocked requests only (who/what is being blocked?)
+**A4) Blocked requests only (who/what is being blocked?)**
+
 >>>fields @timestamp, action, httpRequest.clientIp as clientIp, httpRequest.uri as uri
 | filter action = "BLOCK"
 | stats count() as blocks by clientIp, uri
@@ -1331,7 +1334,8 @@ go to Amazon Athena > Query Settings > manage > Browse S3 > Choose S3 data set >
 
 sc<sup>54-8</sup>![54-8](./screen-captures/54-8.png)
 
-A5) Which WAF rule is doing the blocking?
+**A5) Which WAF rule is doing the blocking?**
+
 >>>fields @timestamp, action, terminatingRuleId, terminatingRuleType
 | filter action = "BLOCK"
 | stats count() as blocks by terminatingRuleId, terminatingRuleType
@@ -1340,7 +1344,7 @@ A5) Which WAF rule is doing the blocking?
 
 sc<sup>54-9</sup>![54-9](./screen-captures/54-9.png)
 
-A6) Rate of blocks over time (did it spike?)
+**A6) Rate of blocks over time (did it spike?)**
 >>>fields @timestamp, httpRequest.clientIp as clientIp, httpRequest.uri as uri
 | filter uri like /wp-login|xmlrpc|\.env|admin|phpmyadmin|\.git|\/login/
 | stats count() as hits by clientIp, uri
@@ -1352,7 +1356,7 @@ sc<sup>54-10</sup>![54-10](./screen-captures/54-10.png)
 #edit
 fields @timestamp, httpRequest.clientIp as clientIp, httpRequest.uri 
 
-A7) Suspicious scanners (common patterns: admin paths, wp-login, etc.)
+**A7) Suspicious scanners (common patterns: admin paths, wp-login, etc.)**
 >>>fields @timestamp, httpRequest.clientIp as clientIp, httpRequest.uri as uri
 | filter uri like /wp-login|xmlrpc|\.env|admin|phpmyadmin|\.git|\/login/
 | stats count() as hits by clientIp, uri
@@ -1361,7 +1365,7 @@ A7) Suspicious scanners (common patterns: admin paths, wp-login, etc.)
 
 sc<sup>54-11</sup>![54-11](./screen-captures/54-11.png)
 
-A8) Country/geo (if present in your WAF logs)
+**A8) Country/geo (if present in your WAF logs)**
 Some WAF log formats include httpRequest.country. If yours does:
 
 >>>fields @timestamp, httpRequest.country as country
@@ -1376,7 +1380,7 @@ sc<sup>54-12</sup>![54-12](./screen-captures/54-12.png)
 These assume your app logs include meaningful strings like ERROR, DBConnectionErrors, timeout, etc
 (You should enforce this.)
 
-B1) Count errors over time (this should line up with the alarm window)
+**B1) Count errors over time (this should line up with the alarm window)**
 
 the following code has been adjusted to work
 >>>fields @timestamp, @message
@@ -1387,7 +1391,7 @@ the following code has been adjusted to work
 sc<sup>54-13</sup>![54-13](./screen-captures/54-13.png)
 
 
-B2) Show the most recent DB failures (triage view)
+**B2) Show the most recent DB failures (triage view)**
 >>>fields @timestamp, @message
 | filter @message like /DB|mysql|timeout|refused|Access denied|could not connect/
 | sort @timestamp desc
@@ -1395,7 +1399,7 @@ B2) Show the most recent DB failures (triage view)
 
 sc<sup>54-14</sup>![54-14](./screen-captures/54-14.png)
 
-B3) “Is it creds or network?” 
+**B3) “Is it creds or network?”** 
 - classifier hints Credentials drift often shows: 
   - Access denied, authentication failures
 - Network/SecurityGroup often shows: 
@@ -1419,17 +1423,8 @@ B3) “Is it creds or network?”
 sc<sup>54-15</sup>![54-15](./screen-captures/54-15.png)
 
 -----
-!!!!!!!!! check this
-Steps to view raw log events in the CloudWatch console:
 
-1. Steps to view raw log events in the CloudWatch console:
-2. In the navigation pane, choose Logs, then choose Log groups.
-3. From the list of log groups, choose the name of the log group you want to view.
-4. From the list of log streams, choose the name of the log stream that contains the event you are interested in.
-5. Above the list of log events, you will see display options. Choose Text to display all log events in their raw, plain text format. The default view often formats the events (e.g., as rows or collapsed JSON), so switching to "Text" will show the original log data as it was ingested. 
------
-
-B4) Extract structured fields (Requires log JSON)
+**B4) Extract structured fields (Requires log JSON)**
 If you log JSON like: {"level":"ERROR","event":"db_connect_fail","reason":"timeout"}:
 
   >>>fields @timestamp, level, event, reason
@@ -1443,7 +1438,7 @@ sc<sup>54-16</sup>![54-16](./screen-captures/54-16.png)
 
 sc<sup>54-17</sup>![54-17](./screen-captures/54-17.png)
 
-C) Correlation “Enterprise-style” mini-workflow (Runbook Section)
+**C) Correlation “Enterprise-style” mini-workflow (Runbook Section)**
 Add this to the incident runbook:
 
 Step 1 — Confirm signal timing
@@ -1467,4 +1462,483 @@ Step 4 — Verify recovery
   App errors return to baseline (B1)
   WAF blocks stabilize (A6)
   Alarm returns to OK
-  curl https://app.chewbacca-growl.com/list works
+  curl https://app.southrakkasmedia.com/list works
+
+  # [Lab 2a](https://github.com/DennistonShaw/armageddon/tree/main/SEIR_Foundations/LAB2)
+
+  ### IMPORTANT before you start lab 2!
+
+  - Download this [user_data.sh](https://github.com/Nightwolf197676/BOS_Armageddon_Lab1/blob/main/96-1a_user_data.sh) file from Larry's repo and replace yours.
+    - explanation: it adds additional directories and files to the RDS app needed to complete the deliverables
+  
+- sc<sup>55</sup>![55](./screen-captures/55.png)
+
+----
+
+### Verification CLI (students must prove all 3 requirements)
+
+
+### 1. “VPC is only reachable via CloudFront”
+
+**A) Direct ALB access should fail (403)**
+  >>>curl -I https://<ALB_DNS_NAME>
+
+Expected: 403 (blocked by missing header)
+
+sc<sup>56-1</sup>![56-1](./screen-captures/56-1.png)
+
+**B) CloudFront access should succeed**
+  >>>curl -I https://southrakkasmedia.com
+
+sc<sup>56-2</sup>![56-2](./screen-captures/56-2.png)
+
+  >>>curl -I https://app.southrakkasmedia.com
+
+Expected: 200/301 → 200
+
+sc<sup>56-3</sup>![56-3](./screen-captures/56-3.png)
+
+----
+
+### 2. WAF moved to CloudFront
+  >>>aws wafv2 get-web-acl \
+  --name <project>-cf-waf01 \
+  --scope CLOUDFRONT \
+  --id <WEB_ACL_ID>
+
+sc<sup>56-4</sup>![56-4](./screen-captures/56-4.png)
+
+And confirm distribution references it:
+  >>>aws cloudfront get-distribution \
+  --id <DISTRIBUTION_ID> \
+  --query "Distribution.DistributionConfig.WebACLId"
+
+Expected: WebACL ARN present.
+
+sc<sup>56-5</sup>![56-5](./screen-captures/56-5.png)
+
+----
+
+### 3. southrakkasmedia.com points to CloudFront
+  >>>dig southrakkasmedia.com A +short
+
+  >>>dig app.southrakkasmedia.com A +short
+
+Expected: resolves to CloudFront (you’ll see CloudFront anycast behavior, not ALB IPs)
+
+sc<sup>56-6</sup>![56-6](./screen-captures/56-6.png)
+
+# [Lab 2b](https://github.com/DennistonShaw/armageddon/blob/main/SEIR_Foundations/LAB2/2b_lab.txt)
+
+Expected Deliverables
+
+### Deliverable B — Correctness Proof (CLI evidence)
+  You must submit:
+
+**A) curl -I outputs for:**
+- /static/example.txt (must show cache hit behavior)
+- /api/list (must NOT cache unsafe content)
+
+**B) A short written explanation:**
+- “What is my cache key for /api/* and why?”
+- “What am I forwarding to origin and why?”
+
+### Deliverable C - Haiku. You must submit  
+- Haiku describing Chewbacca's perfections.**    
+        漢字で。。。英語なし
+
+>>>忠誠無二
+温眼守護
+我家至宝
+
+### Deliverable D 
+- Technical Verification (CLI) 
+- “Correctness, not vibes”
+
+**1) Static caching proof
+Run twice:**
+
+  >>>curl -I https://southrakkasmedia.com/static/example.txt
+
+  >>>curl -I https://southrakkasmedia.com/static/example.txt
+
+Look for:
+  - Cache-Control: public, max-age=... (from response headers policy)
+  - Age: increases on subsequent requests (cached object indicator) 
+
+  If Age never appears/increases, caching isn’t working (or TTL is 0 / headers prevent caching).
+
+sc<sup>57-1</sup>![57-1](./screen-captures/57-1.png)
+
+sc<sup>57-2</sup>![57-2](./screen-captures/57-2.png)
+
+**2) API must NOT cache unsafe output
+Run twice:**
+  >>>curl -I https://southrakkasmedia.com/api/list
+
+  >>>curl -I https://southrakkasmedia.com/api/list
+
+Expected for “safe default” API behavior:
+    Age should be absent or 0
+    Responses should reflect fresh origin behavior
+    If you add auth later, you must never allow one user to see another’s response
+
+sc<sup>57-3</sup>![57-3](./screen-captures/57-3.png)
+
+3) Cache key sanity checks (query strings)
+Static should ignore query strings by default:
+
+  >>>curl -I "https://southrakkasmedia.com/static/example.txt?v=1"
+
+  >>>curl -I "https://southrakkasmedia.com/static/example.txt?v=2"
+
+Expected:
+both map to the same cached object (hit ratio stays high) because static cache policy ignores query strings (unless students intentionally change it)
+
+sc<sup>57-4</sup>![57-4](./screen-captures/57-4.png)
+
+4) “Stale read after write” safety test
+  If your API supports writes:
+    POST a new row
+    Immediately GET /api/list
+    Ensure the new row appears
+      If it doesn’t, they accidentally cached a dynamic response.
+
+sc<sup>57-5</sup>![57-5](./screen-captures/57-5.png)
+
+
+# Lab 2b - [Be A Man Challenge A](https://github.com/DennistonShaw/armageddon/blob/main/SEIR_Foundations/LAB2/2b_Be_A_ManA.txt)
+
+First update your [user_data.sh](https://github.com/DennistonShaw/BOS_Armageddon_Lab1/blob/main/Lab_2b_be_a_man_a/96-1a_user_data.sh) here as some minor changes have been made.
+
+### What students add to the app (EC2). Create two endpoints:
+
+1. **Public endpoint (cacheable)**
+
+   - GET /api/public-feed. Response must include:
+     - Cache-Control: 
+      - public
+      - s-maxage=30
+      - max-age=0
+      - s-maxage is for shared caches (CDNs). 
+
+Example behavior: returns “server_time_utc” and “message of the minute” should change every request at origin, but CloudFront will hold it for 30 seconds
+
+2. **Private endpoint (never cache)**
+
+    - GET /api/list (or /api/user-feed). Response must include:
+      - Cache-Control:
+      - private
+      - no-store
+  
+This prevents user mixups and stale reads.
+
+### Terraform: Honors Overlay
+
+1. Reference AWS managed policies (data sources)
+
+Use Terraform data sources to grab managed cache policies by name. HashiCorp documents the data source pattern. 
+Terraform Registry
+
+Create lab2b_honors_origin_driven.tf:
+
+2) Patch CloudFront behaviors (the Honors behavior matrix)
+
+- A) /api/public-feed = origin-driven caching
+- 
+Use UseOriginCacheControlHeaders (or QueryStrings variant if needed).
+
+- B) /api/* = still safe default (no caching)
+- 
+Keep your earlier “API caching disabled” policy for everything else.
+
+- C) /static/* remains aggressive
+- 
+No change from Lab 2B baseline.
+
+## Honors Verification (students must prove origin-driven caching)
+
+### 1) Prove CloudFront is honoring origin Cache-Control
+
+**A) First request should be MISS**
+
+>>>curl -i https://southrakkasmedia.com/api/public-feed | sed -n '1,20p'
+
+Check headers:
+    Cache-Control: public, s-maxage=30, max-age=0 (from origin)
+    x-cache: Miss from cloudfront (or similar)
+    Age: likely absent or 0
+
+x-cache meanings are documented by AWS
+
+sc<sup>58-1</sup>![58-1](./screen-captures/58-1.png)
+
+**B) Second request within 30 seconds should be HIT**
+
+>>>curl -i https://southrakkasmedia.com/api/public-feed | sed -n '1,20p'
+
+Expected:
+- x-cache: Hit from cloudfront 
+- Age: increases on subsequent hits (cache indicator)
+- Body should remain identical until TTL expires
+
+sc<sup>58-2</sup>![58-2](./screen-captures/58-2.png)
+
+**C) After 35 seconds, it should MISS again**
+
+sleep 35
+>>>curl -i https://southrakkasmedia.com/api/public-feed | sed -n '1,20p'
+
+Expected:
+- x-cache becomes Miss or RefreshHit 
+- Body updates
+
+sc<sup>58-3</sup>![58-3](./screen-captures/58-3.png)
+
+### 2) Prove “no-store” never caches (safety proof)
+
+>>>curl -i https://southrakkasmedia.com/api/list | sed -n '1,30p'
+
+>>>curl -i https://southrakkasmedia.com/api/list | sed -n '1,30p'
+
+Expected:
+- Cache-Control: private, no-store
+- No meaningful cache hit behavior (Age not growing / no Hit)
+- Each request should reflect origin state
+  
+If a student gets a cache HIT here, it’s a fail (potential data leak).
+
+sc<sup>58-4</sup>![58-4](./screen-captures/58-4.png)
+
+----
+Q. Why origin-driven caching is safer for APIs?
+When would still disable caching entirely?
+
+A. Origin-driven caching is considered safer for APIs because it ensures the backend (origin) remains the authoritative source of truth for security policies, data validation, cache invalidation, and how long the data is allowed to live. This ensures users receive the latest information rather than stale, outdated, inccorect or unauthorized data. You would disable caching entirely when the data changes frequently or instantly, such as stock prices, live tracking, or real-time sensor data, as serving stale data is unacceptable. Also, sensitive personalized data such as medical records, authentication, authorization, where you don't want data leaks and active development and testing where you need the latest changes immediately.
+
+----
+----
+
+# Lab 2b - [Be A Man Challenge B](https://github.com/DennistonShaw/armageddon/blob/main/SEIR_Foundations/LAB2/2b_Be_A_ManB.txt)
+
+Lab 2B-Honors+: CloudFront Invalidation as a Controlled Operation
+Objective
+Students will:
+1) Keep origin-driven caching for /api/public-feed (as in Honors)
+2) Use versioned static assets for normal deployments (preferred)
+3) Use CloudFront invalidation only for approved “break glass” events
+4) Prove correctness with x-cache, Age, and invalidation status
+
+AWS CLI provides create-invalidation for this workflow.
+
+
+The Operational Rules (non-negotiable)
+
+Rule 1 — Never invalidate /* for deployments
+That’s the “Chewbacca Rage Invalidation™”. You only use it if:
+    security incident
+    corrupted content
+    legal takedown
+    catastrophic caching misconfig
+(And you document why.)
+
+Rule 2 — Prefer versioning for static
+Example: /static/app.<hash>.js
+No invalidation required; you deploy new file with a new name and update the HTML reference. AWS recommends versioning when you update frequently. 
+    Documentation: https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Invalidation.html?utm_source=chatgpt.com
+
+
+Rule 3 — Invalidate only the smallest blast radius
+Examples:
+    /static/index.html
+    /static/manifest.json
+    /static/* (acceptable only if you can justify)
+
+Rule 4 — Budget/limits awareness
+    First 1,000 invalidation paths/month free, then billed per path; wildcard counts as one path.
+
+## Part A — Add “break glass” invalidation procedure (CLI)
+
+**A1) Create an invalidation (single path**
+----
+*note: for windows users you need to use this "MSYS_NO_PATHCONV=1 " at the start of the code for it to recognize the --paths in the preceeding code 
+example:
+- MSYS_NO_PATHCONV=1 aws cloudfront create-invalidation --distribution-id ET8SI4916ZUGG --paths "/static/index.html"
+----
+
+>>>aws cloudfront create-invalidation \
+  --distribution-id <DISTRIBUTION_ID> \
+  --paths "/static/index.html"
+
+AWS shows this exact CLI pattern.
+
+sc<sup>59-1</sup>![59-1](./screen-captures/59-1.png)
+
+**A2) Create an invalidation (wildcard path)**
+
+>>>aws cloudfront create-invalidation \
+  --distribution-id <DISTRIBUTION_ID> \
+  --paths "/static/*"
+
+Wildcards are allowed, but must be last character and paths must start with /
+Documentation: 
+- [What you need to know when invalidating files](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/invalidation-specifying-objects.html?utm_source=chatgpt.com)
+
+sc<sup>59-2</sup>![59-2](./screen-captures/59-2.png)
+
+**A3) Track invalidation completion**
+
+>>>aws cloudfront get-invalidation \
+  --distribution-id <DISTRIBUTION_ID> \
+  --id <INVALIDATION_ID>
+
+sc<sup>59-3</sup>![59-3](./screen-captures/59-3.png)
+
+## Part B — “Correctness Proof” checklist (must submit)
+
+**B1) Before invalidation: prove object is cached**
+
+>>>curl -i https://southrakkasmedia.com/static/index.html | sed -n '1,30p'
+
+>>>curl -i https://southrakkasmedia.com/static/index.html | sed -n '1,30p'
+
+Expected:
+    Age increases on second request (cached)
+    x-cache shows Hit from cloudfront (or similar)
+    AWS documents cache result types and hit/miss concepts.
+
+Documenatation: https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/cache-statistics.html?utm_source=chatgpt.com
+
+sc<sup>59-4</sup>![59-4](./screen-captures/59-4.png)
+
+sc<sup>59-5</sup>![59-5](./screen-captures/59-5.png)
+
+**B2) Deploy change (simulate)**
+Students must update index.html content at origin (or change static file).
+
+- got to the console > ec2 > connect > sessions manager > connect
+- cd /opt/rdsappc
+- ls
+- are you in the right folder?
+- cd static
+- ls
+- if you get a "you don't have permission meesage"
+- type "sudo" first to give administration permission
+- sudo cd /opt/rdsappc
+- touch index.html
+
+sc<sup>59-6</sup>![59-6](./screen-captures/59-6.png)
+
+- now create invalidation
+
+>>>aws cloudfront create-invalidation \
+  --distribution-id <DISTRIBUTION_ID> \
+  --paths "/static/index.html"
+
+Distribution id: EYEZI7L9EMMDQ (Console > CloudFront > Distributions > choose from your distributions)
+
+sc<sup>59-7</sup>![59-7](./screen-captures/59-7.png)
+
+**B3) After invalidation:** 
+- prove cache refresh
+Run invalidation for /static/index.html
+- then run:
+
+>>>curl -i https://southrakkasmedia.com/static/index.html | sed -n '1,30p'
+
+Expected:
+- x-cache is Miss or RefreshHit depending on TTL/conditional validation
+- CloudFront standard logs define Hit, Miss, RefreshHit.
+
+Documentation: [Standard logging reference](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/standard-logs-reference.html?utm_source=chatgpt.com)
+
+sc<sup>59-8</sup>![59-8](./screen-captures/59-8.png)
+
+## Part C — Terraform “framework” (two options)
+
+**Option 1 (Recommended):**
+- Keep invalidations as manual runbook ops
+- Terraform should not constantly invalidate on apply; that trains bad habits.
+
+~~**Option 2 (Advanced/Optional): “Terraform action” invalidation**~~
+~~- HashiCorp provides a CloudFront invalidation action (not a core resource) that creates invalidations and waits~~
+~~- Add file: **lab2b_honors_plus_invalidation_action.tf**~~
+
+## Part D — Incident Scenario (graded)
+- Scenario: “Stale index.html after deployment”
+  - Symptoms:
+    - users keep receiving old index.html which references old hashed assets
+    - static asset caching works, but the HTML entrypoint is stale
+
+Required student response:
+- Confirm caching (Age, x-cache)
+  
+### Q: Explain why versioning is preferred but why entrypoint sometimes needs invalidation
+
+- A: Versioning is preferred because it ensures stability, allows for easy rollbacks, and prevents compatibility issues. However, the "entrypoint" (such as an index.html) sometimes needs to be invalidated (forced to refresh) to prevent users from interacting with stale, cached, or broken code. 
+
+### Q: Why do we Invalidate /static/index.html only (not /*)?
+
+- A: For efficiency to change invalidate only the file that needs to be changed. Doing more is slower, costs more and adds no benefit. It also ensures that users always receive the latest entry point of the application.
+
+
+
+## Part E — “Smart” upgrade (extra credit)
+
+**E1) Explain when not to invalidate**
+- If the only changed files are versioned assets like:
+  - /static/app.9f3c1c7.js
+then invalidation is unnecessary. AWS recommends versioned names for frequent updates. 
+
+AWS Documentation: [Invalidate files to remove content](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Invalidation.html?utm_source=chatgpt.com)
+
+**E2) Create “invalidation budget”**
+- Students must state:
+  - monthly invalidation path budget (e.g., 200)
+  - allowed wildcard usage conditions
+  - approval workflow for /*
+
+### Invalidation Budget Policy
+Each team must define a monthly invalidation path budget (default: 200 paths/month) to control cost and reduce cache churn; usage is tracked and reviewed weekly. Wildcard invalidations (/*) are normally prohibited and permitted only for documented emergencies (e.g., security incident, corrupted cache affecting most users, or origin rollback failure). Any /* request requires a short incident note, two-person approval (service owner + platform/lead), and a post-action review explaining root cause and prevention to avoid repeat use.
+
+Student Submission (Honors+)
+
+Students submit:
+1) CLI command used (create-invalidation) + invalidation ID  Documentation: 
+   - [Use CreateInvalidation with a CLI](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/example_cloudfront_CreateInvalidation_section.html?utm_source=chatgpt.com)
+2) Proof of cache before + after (headers showing Age/x-cache) Documentation: 
+   - [Standard logging reference](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/standard-logs-reference.html?utm_source=chatgpt.com)
+3) A 1-paragraph policy:
+   - “When do we invalidate?”
+   - “When do we version instead?”
+   - “Why is /* restricted?”
+
+### Cache Invalidation & Versioning Policy
+
+We invalidate CloudFront objects only when a change must be visible immediately at a fixed URL (for example, /static/index.html or a critical config file), and we scope invalidations to the smallest possible path to minimize cost and blast radius. We use versioning (hashed filenames like /static/app.9f3c1c7.js) for all other static assets so updates are picked up automatically without invalidations, enabling long cache TTLs and better performance. The wildcard invalidation /* is restricted because it flushes the entire cache, is expensive, increases origin load, and can cause widespread latency spikes or outages; it should be reserved for rare, emergency scenarios only and require explicit approval.
+
+----
+
+# meeting #9 - my-armageddon-project-1
+### Group Leader: Omar Fleming
+### Team Leader: Larry Harris
+### Date: 01-24-25 (Sunday)
+### Time: 2:00pm - 3:00pm est. in class
+### Time: 3:00pm -  pm est. with group
+
+---------
+
+### Members present: 
+- Larry Harris
+- Dennis Shaw
+- LT (Logan T)
+- Omar Ali
+- Tre Bradshaw
+- David McKenzie
+
+--------
+
+## In Class
+- independent work on labs
+
+------
